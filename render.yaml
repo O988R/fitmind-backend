@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: fitmind-backend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        value: YOUR_DATABASE_URL
+      - key: JWT_SECRET
+        value: YOUR_SECRET_KEY
