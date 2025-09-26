@@ -10,8 +10,9 @@ require("dotenv").config();
 // إعدادات Passport
 require("./config/passport");
 
-// مسارات المستخدمين
+// مسارات المستخدمين والتمارين
 const userRoutes = require("./routes/userRoutes");
+const workoutRoutes = require("./routes/workoutRoutes");
 
 const app = express();
 
@@ -36,27 +37,28 @@ const corsMiddleware = cors({
   allowedHeaders: "Content-Type,Authorization",
 });
 app.use(corsMiddleware);
-app.options("*", corsMiddleware); // preflight
+app.options("*", corsMiddleware);
 
 // Body parsers
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.set("trust proxy", true);
 
-// تهيئة Passport
+// Passport
 app.use(passport.initialize());
 
-// Rate limit للـ API
+// Rate limit
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 دقيقة
-  max: 300, // طلبات لكل IP
+  windowMs: 15 * 60 * 1000,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
 });
 app.use("/api", apiLimiter);
 
-// ربط المسارات
+// Routes
 app.use("/api/users", userRoutes);
+app.use("/api/workouts", workoutRoutes);
 
 // Health Checks
 app.get("/healthz", (_req, res) => {
@@ -69,29 +71,15 @@ app.get("/api/health", (_req, res) => {
   res.json({
     message: "FitMind API is healthy ✅",
     environment: process.env.NODE_ENV,
-    googleOAuthEnabled: !!process.env.GOOGLE_CLIENT_ID,
     clientUrl: process.env.CLIENT_URL || null,
     uptime: process.uptime(),
-  });
-});
-
-// OAuth اختبار
-app.get("/api/oauth-test", (req, res) => {
-  const host = `${req.protocol}://${req.get("host")}`;
-  res.json({
-    googleOAuthUrl: `${host}/api/users/auth/google`,
-    googleClientIdConfigured: !!process.env.GOOGLE_CLIENT_ID,
-    googleClientSecretConfigured: !!process.env.GOOGLE_CLIENT_SECRET,
-    passportInitialized: !!passport,
   });
 });
 
 // Root
 app.get("/", (_req, res) => res.json({ ok: true, service: "fitmind-backend" }));
 
-// CORS/أخطاء عامة
-// ميدلوير أخطاء Express
-// (لو cors رجّع Error بنحترم status 403 بدل 500)
+// Error handling
 app.use((err, _req, res, _next) => {
   const status = err.status || 500;
   res.status(status).json({ error: err.message || "Server Error" });
@@ -102,7 +90,6 @@ app.use((req, res) => res.status(404).json({ error: "Not Found", path: req.origi
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server on :${PORT}`);
+  console.log(`Server running on port ${PORT}`);
   console.log(`Allowed origins: ${allowedOrigins.join(", ") || "(any)"}`);
-  console.log(`Client URL: ${process.env.CLIENT_URL || "(none)"}`);
 });
