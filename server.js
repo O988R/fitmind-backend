@@ -8,7 +8,7 @@ const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 // إعدادات Passport
-require("./config/passport");
+require("./passport");
 
 // مسارات المستخدمين والتمارين
 const userRoutes = require("./routes/userRoutes");
